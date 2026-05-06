@@ -1,0 +1,112 @@
+const categorySelect = document.getElementById("category");
+const filesInput = document.getElementById("files-input");
+const folderInput = document.getElementById("folder-input");
+const uploadForm = document.getElementById("upload-form");
+const uploadButton = document.getElementById("upload-button");
+const resetButton = document.getElementById("reset-button");
+const selectionSummary = document.getElementById("selection-summary");
+const resultOutput = document.getElementById("result-output");
+const statusBadge = document.getElementById("status-badge");
+
+function setStatus(label, className) {
+  statusBadge.textContent = label;
+  statusBadge.className = `badge ${className}`;
+}
+
+function getSelectedFiles() {
+  return [...(filesInput.files || []), ...(folderInput.files || [])];
+}
+
+function updateSelectionSummary() {
+  const files = getSelectedFiles();
+
+  if (!files.length) {
+    selectionSummary.textContent = "No files selected.";
+    return;
+  }
+
+  const names = files.slice(0, 6).map((file) => file.webkitRelativePath || file.name);
+  const extraCount = Math.max(0, files.length - names.length);
+  selectionSummary.textContent =
+    `${files.length} file(s) ready: ${names.join(", ")}` + (extraCount ? ` and ${extraCount} more.` : ".");
+}
+
+async function loadCategories() {
+  const response = await fetch("/api/categories");
+  const payload = await response.json();
+
+  categorySelect.innerHTML = "";
+
+  for (const category of payload.categories || []) {
+    const option = document.createElement("option");
+    option.value = category.value;
+    option.textContent = `${category.label} (${category.rootFolder})`;
+    categorySelect.appendChild(option);
+  }
+}
+
+async function uploadFiles(event) {
+  event.preventDefault();
+
+  const files = getSelectedFiles();
+
+  if (!files.length) {
+    resultOutput.textContent = "Please select at least one audio file or one folder.";
+    setStatus("Error", "error");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("category", categorySelect.value);
+
+  for (const file of files) {
+    formData.append("audioFiles", file, file.name);
+  }
+
+  uploadButton.disabled = true;
+  setStatus("Uploading", "busy");
+  resultOutput.textContent = "Uploading files...";
+
+  try {
+    const response = await fetch("/api/uploads/bulk", {
+      method: "POST",
+      body: formData,
+    });
+
+    const payload = await response.json();
+
+    if (!response.ok) {
+      throw new Error(payload.error || "Upload failed.");
+    }
+
+    resultOutput.textContent = JSON.stringify(payload, null, 2);
+    setStatus("Done", "success");
+  } catch (error) {
+    resultOutput.textContent = error instanceof Error ? error.message : String(error);
+    setStatus("Error", "error");
+  } finally {
+    uploadButton.disabled = false;
+  }
+}
+
+function resetSelection() {
+  filesInput.value = "";
+  folderInput.value = "";
+  updateSelectionSummary();
+  resultOutput.textContent = "Waiting for upload.";
+  setStatus("Idle", "idle");
+}
+
+filesInput.addEventListener("change", updateSelectionSummary);
+folderInput.addEventListener("change", updateSelectionSummary);
+uploadForm.addEventListener("submit", uploadFiles);
+resetButton.addEventListener("click", resetSelection);
+
+loadCategories()
+  .then(() => {
+    updateSelectionSummary();
+  })
+  .catch((error) => {
+    resultOutput.textContent = error instanceof Error ? error.message : String(error);
+    setStatus("Error", "error");
+  });

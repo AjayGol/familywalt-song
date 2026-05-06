@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Song Upload</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="topbar">
+        <a class="topbar__brand" href="/">Song Admin</a>
+        <nav class="topbar__nav">
+          <a class="is-active" href="/upload.html">Upload</a>
+          <a href="/player.html">Player</a>
+        </nav>
+      </header>
+
+      <section class="panel hero">
+        <p class="eyebrow">R2 Bulk Upload</p>
+        <h1>Upload songs into category folders</h1>
+        <p class="intro">
+          Choose a category, then upload one file, many files, or a full folder. The backend extracts the
+          song title, artist, and cover image from the audio file and stores them in R2 and MongoDB.
+        </p>
+      </section>
+
+      <section class="panel">
+        <form id="upload-form" class="upload-form">
+          <label class="field">
+            <span>Category</span>
+            <select id="category" name="category" required></select>
+          </label>
+
+          <div class="grid">
+            <label class="field dropzone">
+              <span>Single or multiple files</span>
+              <input id="files-input" type="file" accept=".mp3,.wav,.m4a,.aac,.flac,audio/*" multiple />
+              <small>Select one file or many files.</small>
+            </label>
+
+            <label class="field dropzone">
+              <span>Folder upload</span>
+              <input
+                id="folder-input"
+                type="file"
+                accept=".mp3,.wav,.m4a,.aac,.flac,audio/*"
+                webkitdirectory
+                directory
+                multiple
+              />
+              <small>Select a folder and all audio files inside it will upload.</small>
+            </label>
+          </div>
+
+          <div class="actions">
+            <button id="upload-button" type="submit">Start Upload</button>
+            <button id="reset-button" type="button" class="secondary">Clear Selection</button>
+          </div>
+        </form>
+
+        <div id="selection-summary" class="summary">No files selected.</div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <h2>Upload Result</h2>
+          <span id="status-badge" class="badge idle">Idle</span>
+        </div>
+        <pre id="result-output" class="result">Waiting for upload.</pre>
+      </section>
+    </main>
+
+    <script src="/upload.js"></script>
+  </body>
+</html>

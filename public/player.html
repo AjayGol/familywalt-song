@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Song Player</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="topbar">
+        <a class="topbar__brand" href="/">Song Admin</a>
+        <nav class="topbar__nav">
+          <a href="/upload.html">Upload</a>
+          <a class="is-active" href="/player.html">Player</a>
+        </nav>
+      </header>
+
+      <section class="panel hero">
+        <p class="eyebrow">Simple Player</p>
+        <h1>Browse songs by category</h1>
+        <p class="intro">
+          Pick a category, choose a song, and play it normally. The page reads songs directly from the
+          upload backend.
+        </p>
+      </section>
+
+      <section class="player-layout">
+        <section class="panel">
+          <div class="section-head">
+            <h2>Category Songs</h2>
+          </div>
+
+          <label class="field">
+            <span>Category</span>
+            <select id="player-category"></select>
+          </label>
+
+          <div id="song-list" class="song-list"></div>
+        </section>
+
+        <section class="panel player-panel">
+          <div id="empty-player" class="player-empty">
+            Select a song to see cover art and play audio.
+          </div>
+
+          <div id="player-card" class="player-card is-hidden">
+            <img id="player-cover" class="player-cover" alt="Song cover" />
+            <div class="player-meta">
+              <p id="player-category-label" class="eyebrow"></p>
+              <h2 id="player-title"></h2>
+              <p id="player-artist" class="player-artist"></p>
+            </div>
+            <audio id="player-audio" class="player-audio" controls preload="metadata"></audio>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="/player.js"></script>
+  </body>
+</html>
