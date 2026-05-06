@@ -20,6 +20,7 @@ let categories = [];
 let songs = [];
 let selectedSong = null;
 let currentFilterCategory = "";
+let refreshTimer = null;
 
 function setStatus(label, className) {
   editStatusBadge.textContent = label;
@@ -90,7 +91,7 @@ function populateCategorySelect(selectElement) {
 }
 
 async function loadCategories() {
-  const response = await fetch("/api/categories");
+  const response = await fetch("/api/categories", { cache: "no-store" });
   const payload = await response.json();
   categories = payload.categories || [];
   populateCategorySelect(editCategoryFilter);
@@ -108,6 +109,7 @@ async function loadSongs(preferredSongId = null) {
 
   const response = await fetch(
     `/api/songs?category=${encodeURIComponent(editCategoryFilter.value)}&limit=200&lang=en`,
+    { cache: "no-store" },
   );
   const payload = await response.json();
   songs = payload.songs || [];
@@ -137,7 +139,7 @@ async function loadSong(songId, options = {}) {
       })
     : null;
 
-  const response = await fetch(`/api/songs/${encodeURIComponent(songId)}`);
+  const response = await fetch(`/api/songs/${encodeURIComponent(songId)}`, { cache: "no-store" });
   const payload = await response.json();
 
   if (!response.ok) {
@@ -183,6 +185,7 @@ async function saveSong(event) {
     title: "Updating song",
     message: "Saving English name, Hindi name, artist, and category.",
   });
+  const previousCategory = selectedSong?.category || editCategory.value;
 
   try {
     const response = await fetch(`/api/songs/${encodeURIComponent(editSongId.value)}`, {
@@ -209,6 +212,12 @@ async function saveSong(event) {
     setStatus("Saved", "success");
     loadingPopup?.close();
     await window.adminPopup?.success("Song details updated successfully.", "Song Saved");
+    window.songAdminSync?.publish({
+      type: "songs:changed",
+      reason: "edit",
+      songId: selectedSong.id,
+      categories: [previousCategory, selectedSong.category],
+    });
     editCategoryFilter.value = selectedSong.category;
     await loadSongs(selectedSong.id);
     await loadSong(selectedSong.id);
@@ -264,6 +273,12 @@ async function deleteCurrentSong() {
     setStatus("Deleted", "success");
     loadingPopup?.close();
     await window.adminPopup?.success("Song deleted successfully.", "Song Deleted");
+    window.songAdminSync?.publish({
+      type: "songs:changed",
+      reason: "delete",
+      songId: payload.song?.id || editSongId.value,
+      categories: [payload.song?.category || currentFilterCategory],
+    });
     updateUrl("", editCategoryFilter.value);
     await loadSongs();
   } catch (error) {
@@ -272,6 +287,28 @@ async function deleteCurrentSong() {
   } finally {
     deleteButton.disabled = false;
   }
+}
+
+function scheduleExternalRefresh(message) {
+  const affectedCategories = Array.isArray(message?.categories) ? message.categories : [];
+  const currentCategory = editCategoryFilter.value;
+  const selectedId = selectedSong?.id || null;
+  const isRelevant =
+    !affectedCategories.length ||
+    affectedCategories.includes(currentCategory) ||
+    (selectedSong?.category && affectedCategories.includes(selectedSong.category)) ||
+    message?.songId === selectedId;
+
+  if (!isRelevant) {
+    return;
+  }
+
+  window.clearTimeout(refreshTimer);
+  refreshTimer = window.setTimeout(() => {
+    loadSongs(selectedId).catch((error) => {
+      renderError(error instanceof Error ? error.message : String(error));
+    });
+  }, 250);
 }
 
 editCategoryFilter.addEventListener("change", () => {
@@ -309,3 +346,7 @@ loadCategories()
   .catch((error) => {
     renderError(error instanceof Error ? error.message : String(error));
   });
+
+window.songAdminSync?.subscribe((message) => {
+  scheduleExternalRefresh(message);
+});

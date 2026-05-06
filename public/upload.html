@@ -28,7 +28,8 @@
         <p class="intro">
           Choose a category, then upload one file, many files, or a full folder. The backend extracts the
           song title, artist, and cover image from the audio file, generates the Hindi title automatically,
-          and stores everything in R2 and MongoDB.
+          and stores everything in R2 and MongoDB. After upload, the other open admin pages refresh
+          automatically.
         </p>
       </section>
 
@@ -83,6 +84,7 @@
     </footer>
 
     <script src="/popup.js"></script>
+    <script src="/live-sync.js"></script>
     <script src="/upload.js"></script>
   </body>
 </html>

@@ -6,6 +6,7 @@ const { getCategoryConfig } = require("../config/categories");
 const { Song } = require("../models/song");
 const { prepareUploadAssets } = require("../lib/media");
 const { copyObject, deleteObject, ensureCategoryFoldersExist, getPublicUrl, putObject } = require("../lib/r2");
+const { invalidateSongQueryCache, remember } = require("../lib/songQueryCache");
 const { generateHindiTitle } = require("../lib/titleLocalization");
 
 function normalizeText(value) {
@@ -92,6 +93,10 @@ async function uploadSongFile(file, categoryInput, options = {}) {
       processingMode: prepared.processedAudio.processingMode,
     });
 
+    if (options.invalidateCache !== false) {
+      invalidateSongQueryCache();
+    }
+
     return {
       status: "uploaded",
       id: song.id,
@@ -136,7 +141,10 @@ async function uploadManySongs(files, categoryInput, options = {}) {
 
   for (const file of files) {
     try {
-      const result = await uploadSongFile(file, categoryInput, options);
+      const result = await uploadSongFile(file, categoryInput, {
+        ...options,
+        invalidateCache: false,
+      });
       results.push(result);
     } catch (error) {
       if (options.cleanupSource !== false) {
@@ -151,33 +159,58 @@ async function uploadManySongs(files, categoryInput, options = {}) {
     }
   }
 
+  if (results.some((result) => result.status === "uploaded")) {
+    invalidateSongQueryCache();
+  }
+
   return results;
 }
 
 async function listSongs(options = {}) {
   const limit = Number(options.limit || 100);
-  const query = {};
+  const category = options.category || null;
 
-  if (options.category) {
-    query.category = options.category;
-  }
+  return remember(
+    "songs:list",
+    { category, limit },
+    async () => {
+      const query = {};
 
-  return Song.find(query).sort({ createdAt: -1 }).limit(limit).lean();
+      if (category) {
+        query.category = category;
+      }
+
+      return Song.find(query).sort({ createdAt: -1 }).limit(limit).lean();
+    },
+    { ttlMs: 30 * 1000 },
+  );
 }
 
 async function countSongsByCategory() {
-  const rows = await Song.aggregate([{ $group: { _id: "$category", count: { $sum: 1 } } }]);
-  const counts = {};
+  return remember(
+    "songs:counts",
+    {},
+    async () => {
+      const rows = await Song.aggregate([{ $group: { _id: "$category", count: { $sum: 1 } } }]);
+      const counts = {};
 
-  for (const row of rows) {
-    counts[row._id] = row.count;
-  }
+      for (const row of rows) {
+        counts[row._id] = row.count;
+      }
 
-  return counts;
+      return counts;
+    },
+    { ttlMs: 30 * 1000 },
+  );
 }
 
 async function getSongById(songId) {
-  return Song.findById(songId).lean();
+  return remember(
+    "songs:detail",
+    { songId },
+    () => Song.findById(songId).lean(),
+    { ttlMs: 30 * 1000 },
+  );
 }
 
 async function updateSongMetadata(songId, input) {
@@ -282,6 +315,8 @@ async function updateSongMetadata(songId, input) {
     await Promise.allSettled([deleteObject(previousAudioKey), deleteObject(previousImageKey)]);
   }
 
+  invalidateSongQueryCache();
+
   return song.toObject();
 }
 
@@ -301,6 +336,7 @@ async function deleteSong(songId) {
 
   await song.deleteOne();
   await Promise.allSettled([deleteObject(audioKey), deleteObject(imageKey)]);
+  invalidateSongQueryCache();
 
   return {
     id: String(song._id),

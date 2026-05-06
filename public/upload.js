@@ -71,7 +71,7 @@ function updateSelectionSummary() {
 }
 
 async function loadCategories() {
-  const response = await fetch("/api/categories");
+  const response = await fetch("/api/categories", { cache: "no-store" });
   const payload = await response.json();
 
   categorySelect.innerHTML = "";
@@ -127,6 +127,13 @@ async function uploadFiles(event) {
       `Uploaded ${payload.uploaded}, skipped ${payload.skipped}, failed ${payload.failed}.`,
       "Upload Complete",
     );
+    if (payload.uploaded > 0) {
+      window.songAdminSync?.publish({
+        type: "songs:changed",
+        reason: "upload",
+        categories: [categorySelect.value],
+      });
+    }
   } catch (error) {
     progressPopup?.close();
     resultOutput.textContent = error instanceof Error ? error.message : String(error);

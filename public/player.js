@@ -13,6 +13,8 @@ const playerLanguage = document.getElementById("player-language");
 let categories = [];
 let songs = [];
 let currentLanguage = "en";
+let selectedSongId = null;
+let refreshTimer = null;
 
 function formatCategoryLabel(value) {
   const category = categories.find((item) => item.value === value);
@@ -47,6 +49,7 @@ function renderSongs() {
 }
 
 function selectSong(song) {
+  selectedSongId = song.id;
   emptyPlayer.classList.add("is-hidden");
   playerCard.classList.remove("is-hidden");
   playerCover.src = song.imageUrl;
@@ -60,7 +63,7 @@ function selectSong(song) {
 }
 
 async function loadCategories() {
-  const response = await fetch("/api/categories");
+  const response = await fetch("/api/categories", { cache: "no-store" });
   const payload = await response.json();
 
   categories = payload.categories || [];
@@ -74,23 +77,46 @@ async function loadCategories() {
   }
 }
 
-async function loadSongs() {
+async function loadSongs(options = {}) {
   const category = categorySelect.value;
   const response = await fetch(
     `/api/songs?category=${encodeURIComponent(category)}&limit=100&lang=${encodeURIComponent(currentLanguage)}`,
+    { cache: "no-store" },
   );
   const payload = await response.json();
   songs = payload.songs || [];
   renderSongs();
 
   if (songs.length) {
-    selectSong(songs[0]);
+    const nextSong =
+      (options.preserveSelection !== false && selectedSongId
+        ? songs.find((song) => song.id === selectedSongId)
+        : null) || songs[0];
+
+    selectSong(nextSong);
   } else {
+    selectedSongId = null;
     emptyPlayer.classList.remove("is-hidden");
     playerCard.classList.add("is-hidden");
     playerAudio.removeAttribute("src");
     playerAudio.load();
   }
+}
+
+function scheduleExternalRefresh(message) {
+  const currentCategory = categorySelect.value;
+  const affectedCategories = Array.isArray(message?.categories) ? message.categories : [];
+
+  if (affectedCategories.length && !affectedCategories.includes(currentCategory)) {
+    return;
+  }
+
+  window.clearTimeout(refreshTimer);
+  refreshTimer = window.setTimeout(() => {
+    loadSongs({ preserveSelection: true }).catch((error) => {
+      songList.innerHTML = `<div class="song-list__empty">${error instanceof Error ? error.message : String(error)}</div>`;
+    });
+  }, 250);
 }
 
 categorySelect.addEventListener("change", () => {
@@ -111,3 +137,7 @@ loadCategories()
   .catch((error) => {
     songList.innerHTML = `<div class="song-list__empty">${error instanceof Error ? error.message : String(error)}</div>`;
   });
+
+window.songAdminSync?.subscribe((message) => {
+  scheduleExternalRefresh(message);
+});

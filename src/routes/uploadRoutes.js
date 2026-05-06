@@ -47,6 +47,14 @@ const upload = multer({
 
 const router = express.Router();
 
+router.use((request, response, next) => {
+  if (request.method === "GET") {
+    response.set("Cache-Control", "no-store");
+  }
+
+  next();
+});
+
 function getRequestedLanguage(request) {
   return typeof request.query.lang === "string" ? request.query.lang : "en";
 }
