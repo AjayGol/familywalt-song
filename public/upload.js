@@ -71,7 +71,7 @@ function updateSelectionSummary() {
 }
 
 async function loadCategories() {
-  const response = await fetch("/api/categories", { cache: "no-store" });
+  const response = await fetch("/api/categories", { cache: "no-cache" });
   const payload = await response.json();
 
   categorySelect.innerHTML = "";
@@ -128,10 +128,16 @@ async function uploadFiles(event) {
       "Upload Complete",
     );
     if (payload.uploaded > 0) {
+      const uploadedUrls = (payload.results || [])
+        .filter((item) => item.status === "uploaded")
+        .flatMap((item) => [item.imageUrl, item.audioUrl])
+        .filter(Boolean);
+
       window.songAdminSync?.publish({
         type: "songs:changed",
         reason: "upload",
         categories: [categorySelect.value],
+        evictUrls: uploadedUrls,
       });
     }
   } catch (error) {

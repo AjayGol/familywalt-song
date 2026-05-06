@@ -49,7 +49,7 @@ const router = express.Router();
 
 router.use((request, response, next) => {
   if (request.method === "GET") {
-    response.set("Cache-Control", "no-store");
+    response.set("Cache-Control", "private, no-cache, must-revalidate");
   }
 
   next();

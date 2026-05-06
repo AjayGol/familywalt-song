@@ -64,7 +64,7 @@ function renderSongList() {
     button.type = "button";
     button.className = `song-item${selectedSong?.id === song.id ? " is-active" : ""}`;
     button.innerHTML = `
-      <img src="${song.imageUrl}" alt="${song.title}" />
+      <img src="" data-src="${song.imageUrl}" data-lazy-image="true" alt="${song.title}" />
       <div class="song-item__content">
         <strong>${song.displayTitle || song.title}</strong>
         <span>${song.artist}</span>
@@ -77,6 +77,8 @@ function renderSongList() {
     });
     editSongList.appendChild(button);
   }
+
+  window.songAdminLazyImages?.upgrade(editSongList);
 }
 
 function populateCategorySelect(selectElement) {
@@ -91,7 +93,7 @@ function populateCategorySelect(selectElement) {
 }
 
 async function loadCategories() {
-  const response = await fetch("/api/categories", { cache: "no-store" });
+  const response = await fetch("/api/categories", { cache: "no-cache" });
   const payload = await response.json();
   categories = payload.categories || [];
   populateCategorySelect(editCategoryFilter);
@@ -109,7 +111,7 @@ async function loadSongs(preferredSongId = null) {
 
   const response = await fetch(
     `/api/songs?category=${encodeURIComponent(editCategoryFilter.value)}&limit=200&lang=en`,
-    { cache: "no-store" },
+    { cache: "no-cache" },
   );
   const payload = await response.json();
   songs = payload.songs || [];
@@ -139,7 +141,7 @@ async function loadSong(songId, options = {}) {
       })
     : null;
 
-  const response = await fetch(`/api/songs/${encodeURIComponent(songId)}`, { cache: "no-store" });
+  const response = await fetch(`/api/songs/${encodeURIComponent(songId)}`, { cache: "no-cache" });
   const payload = await response.json();
 
   if (!response.ok) {
@@ -186,6 +188,7 @@ async function saveSong(event) {
     message: "Saving English name, Hindi name, artist, and category.",
   });
   const previousCategory = selectedSong?.category || editCategory.value;
+  const previousMediaUrls = selectedSong ? [selectedSong.imageUrl, selectedSong.audioUrl] : [];
 
   try {
     const response = await fetch(`/api/songs/${encodeURIComponent(editSongId.value)}`, {
@@ -217,6 +220,7 @@ async function saveSong(event) {
       reason: "edit",
       songId: selectedSong.id,
       categories: [previousCategory, selectedSong.category],
+      evictUrls: previousMediaUrls,
     });
     editCategoryFilter.value = selectedSong.category;
     await loadSongs(selectedSong.id);
@@ -250,6 +254,7 @@ async function deleteCurrentSong() {
 
   deleteButton.disabled = true;
   setStatus("Deleting", "busy");
+  const previousMediaUrls = selectedSong ? [selectedSong.imageUrl, selectedSong.audioUrl] : [];
   const loadingPopup = window.adminPopup?.showLoading({
     eyebrow: "Deleting Song",
     title: "Removing song",
@@ -278,6 +283,7 @@ async function deleteCurrentSong() {
       reason: "delete",
       songId: payload.song?.id || editSongId.value,
       categories: [payload.song?.category || currentFilterCategory],
+      evictUrls: previousMediaUrls,
     });
     updateUrl("", editCategoryFilter.value);
     await loadSongs();
@@ -308,7 +314,7 @@ function scheduleExternalRefresh(message) {
     loadSongs(selectedId).catch((error) => {
       renderError(error instanceof Error ? error.message : String(error));
     });
-  }, 250);
+  }, 60);
 }
 
 editCategoryFilter.addEventListener("change", () => {

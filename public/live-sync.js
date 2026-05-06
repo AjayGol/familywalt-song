@@ -22,6 +22,7 @@
       reason: message.reason || "refresh",
       songId: message.songId || null,
       categories: Array.isArray(message.categories) ? message.categories.filter(Boolean) : [],
+      evictUrls: Array.isArray(message.evictUrls) ? message.evictUrls.filter(Boolean) : [],
       updatedAt: message.updatedAt || Date.now(),
       sourceId: message.sourceId || sourceId,
     };
@@ -38,6 +39,10 @@
       return;
     }
 
+    if (message.evictUrls.length) {
+      window.songAdminMediaCache?.evict(message.evictUrls);
+    }
+
     channel?.postMessage(message);
 
     try {
@@ -51,6 +56,10 @@
 
     if (!message || message.sourceId === sourceId) {
       return;
+    }
+
+    if (message.evictUrls.length) {
+      window.songAdminMediaCache?.evict(message.evictUrls);
     }
 
     notify(message);

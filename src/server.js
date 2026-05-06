@@ -8,11 +8,23 @@ const { router } = require("./routes/uploadRoutes");
 async function startServer() {
   const env = getEnv();
   const app = express();
+  const publicDir = path.join(process.cwd(), "public");
 
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use("/api", router);
-  app.use(express.static(path.join(process.cwd(), "public")));
+  app.get("/song-media-cache-sw.js", (request, response) => {
+    response.set("Cache-Control", "no-cache, no-store, must-revalidate");
+    response.set("Service-Worker-Allowed", "/");
+    response.sendFile(path.join(publicDir, "song-media-cache-sw.js"));
+  });
+  app.use(
+    express.static(publicDir, {
+      maxAge: "1h",
+      etag: true,
+      lastModified: true,
+    }),
+  );
 
   app.use((error, request, response, next) => {
     if (response.headersSent) {

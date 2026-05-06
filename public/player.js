@@ -37,7 +37,7 @@ function renderSongs() {
     button.type = "button";
     button.className = "song-item";
     button.innerHTML = `
-      <img src="${song.imageUrl}" alt="${song.title}" />
+      <img src="" data-src="${song.imageUrl}" data-lazy-image="true" alt="${song.title}" />
       <div class="song-item__content">
         <strong>${song.displayTitle || song.title}</strong>
         <span>${song.artist}</span>
@@ -46,6 +46,8 @@ function renderSongs() {
     button.addEventListener("click", () => selectSong(song));
     songList.appendChild(button);
   }
+
+  window.songAdminLazyImages?.upgrade(songList);
 }
 
 function selectSong(song) {
@@ -59,11 +61,10 @@ function selectSong(song) {
   playerCategoryLabel.textContent = formatCategoryLabel(song.category);
   playerAudio.src = song.audioUrl;
   playerEditLink.href = `/edit.html?id=${encodeURIComponent(song.id)}`;
-  playerAudio.play().catch(() => {});
 }
 
 async function loadCategories() {
-  const response = await fetch("/api/categories", { cache: "no-store" });
+  const response = await fetch("/api/categories", { cache: "no-cache" });
   const payload = await response.json();
 
   categories = payload.categories || [];
@@ -81,7 +82,7 @@ async function loadSongs(options = {}) {
   const category = categorySelect.value;
   const response = await fetch(
     `/api/songs?category=${encodeURIComponent(category)}&limit=100&lang=${encodeURIComponent(currentLanguage)}`,
-    { cache: "no-store" },
+    { cache: "no-cache" },
   );
   const payload = await response.json();
   songs = payload.songs || [];
@@ -116,7 +117,7 @@ function scheduleExternalRefresh(message) {
     loadSongs({ preserveSelection: true }).catch((error) => {
       songList.innerHTML = `<div class="song-list__empty">${error instanceof Error ? error.message : String(error)}</div>`;
     });
-  }, 250);
+  }, 60);
 }
 
 categorySelect.addEventListener("change", () => {
