@@ -9,12 +9,16 @@
   <body>
     <main class="page shell-page">
       <header class="topbar">
-        <a class="topbar__brand" href="/">Song Admin</a>
+        <a class="topbar__brand" href="/">
+          <span class="topbar__brand-main">Song Admin</span>
+          <span class="topbar__brand-sub">Dev by BS Patel</span>
+        </a>
         <nav class="topbar__nav">
           <a class="is-active" href="/">Home</a>
           <a href="/upload.html">Upload</a>
           <a href="/player.html">Player</a>
           <a href="/edit.html">Edit</a>
+          <a href="/api.html">Get API</a>
         </nav>
       </header>
 
@@ -63,8 +67,24 @@
             <a class="button-link" href="/edit.html">Open Edit</a>
           </div>
         </section>
+
+        <section class="panel simple-section" id="api-section">
+          <p class="nav-card__eyebrow">Get API</p>
+          <h2>Developer API Access</h2>
+          <p>
+            Open the arranged API page with the real Render URLs, grouped for mobile, admin, upload, health,
+            and language-based song fetching.
+          </p>
+          <div class="actions">
+            <a class="button-link" href="/api.html">Open API Page</a>
+          </div>
+        </section>
       </section>
     </main>
+    <footer class="page-footer">
+      <span>Dev by BS Patel</span>
+      <span>Familywalt Song Management</span>
+    </footer>
 
     <script src="/popup.js"></script>
     <script src="/panel.js"></script>

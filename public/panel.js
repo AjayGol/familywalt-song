@@ -4,7 +4,12 @@ for (const button of document.querySelectorAll("[data-copy]")) {
 
     try {
       await navigator.clipboard.writeText(text);
-      window.adminPopup?.success("API URL copied to clipboard.", "Copied");
+      window.adminPopup?.flash({
+        type: "success",
+        eyebrow: "Copied",
+        title: "API URL copied",
+        message: "The production API URL is now in your clipboard.",
+      });
     } catch {
       window.adminPopup?.error("Unable to copy the API URL.", "Copy Failed");
     }

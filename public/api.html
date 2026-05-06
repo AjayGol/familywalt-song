@@ -9,7 +9,10 @@
   <body>
     <main class="page">
       <header class="topbar">
-        <a class="topbar__brand" href="/">Song Admin</a>
+        <a class="topbar__brand" href="/">
+          <span class="topbar__brand-main">Song Admin</span>
+          <span class="topbar__brand-sub">Dev by BS Patel</span>
+        </a>
         <nav class="topbar__nav">
           <a href="/">Home</a>
           <a href="/upload.html">Upload</a>
@@ -23,8 +26,8 @@
         <p class="eyebrow">API URLs</p>
         <h1>Copy API links for developers</h1>
         <p class="intro">
-          Use these URLs directly in Android, frontend, or Postman. The base URL updates automatically from
-          the current hosted domain.
+          Use these real hosted URLs directly in Android, frontend, or Postman. Every endpoint on this page
+          uses the Render production domain.
         </p>
       </section>
 
@@ -37,6 +40,10 @@
 
       <section class="api-grid" id="api-grid"></section>
     </main>
+    <footer class="page-footer">
+      <span>Dev by BS Patel</span>
+      <span>Production Render API links only</span>
+    </footer>
 
     <script src="/popup.js"></script>
     <script src="/api.js"></script>

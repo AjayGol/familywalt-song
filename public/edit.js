@@ -70,7 +70,7 @@ function renderSongList() {
       </div>
     `;
     button.addEventListener("click", () => {
-      loadSong(song.id).catch((error) => {
+      loadSong(song.id, { showLoading: true }).catch((error) => {
         renderError(error instanceof Error ? error.message : String(error));
       });
     });
@@ -128,11 +128,20 @@ async function loadSongs(preferredSongId = null) {
   }
 }
 
-async function loadSong(songId) {
+async function loadSong(songId, options = {}) {
+  const loadingPopup = options.showLoading
+    ? window.adminPopup?.showLoading({
+        eyebrow: "Loading Song",
+        title: "Opening song details",
+        message: "Fetching song information.",
+      })
+    : null;
+
   const response = await fetch(`/api/songs/${encodeURIComponent(songId)}`);
   const payload = await response.json();
 
   if (!response.ok) {
+    loadingPopup?.close();
     throw new Error(payload.error || "Unable to load song.");
   }
 
@@ -155,6 +164,7 @@ async function loadSong(songId) {
   editResult.textContent = JSON.stringify(selectedSong, null, 2);
   setStatus("Loaded", "idle");
   renderSongList();
+  loadingPopup?.close();
 }
 
 async function saveSong(event) {
@@ -168,6 +178,11 @@ async function saveSong(event) {
 
   saveButton.disabled = true;
   setStatus("Saving", "busy");
+  const loadingPopup = window.adminPopup?.showLoading({
+    eyebrow: "Saving Changes",
+    title: "Updating song",
+    message: "Saving English name, Hindi name, artist, and category.",
+  });
 
   try {
     const response = await fetch(`/api/songs/${encodeURIComponent(editSongId.value)}`, {
@@ -192,11 +207,13 @@ async function saveSong(event) {
     selectedSong = payload.song;
     editResult.textContent = JSON.stringify(payload, null, 2);
     setStatus("Saved", "success");
-    window.adminPopup?.success("Song details updated successfully.", "Song Saved");
+    loadingPopup?.close();
+    await window.adminPopup?.success("Song details updated successfully.", "Song Saved");
     editCategoryFilter.value = selectedSong.category;
     await loadSongs(selectedSong.id);
     await loadSong(selectedSong.id);
   } catch (error) {
+    loadingPopup?.close();
     renderError(error instanceof Error ? error.message : String(error));
   } finally {
     saveButton.disabled = false;
@@ -224,6 +241,11 @@ async function deleteCurrentSong() {
 
   deleteButton.disabled = true;
   setStatus("Deleting", "busy");
+  const loadingPopup = window.adminPopup?.showLoading({
+    eyebrow: "Deleting Song",
+    title: "Removing song",
+    message: "Deleting the song and linked files.",
+  });
 
   try {
     const response = await fetch(`/api/songs/${encodeURIComponent(editSongId.value)}`, {
@@ -240,10 +262,12 @@ async function deleteCurrentSong() {
     editFormShell.classList.add("is-hidden");
     editResult.textContent = JSON.stringify(payload, null, 2);
     setStatus("Deleted", "success");
-    window.adminPopup?.success("Song deleted successfully.", "Song Deleted");
+    loadingPopup?.close();
+    await window.adminPopup?.success("Song deleted successfully.", "Song Deleted");
     updateUrl("", editCategoryFilter.value);
     await loadSongs();
   } catch (error) {
+    loadingPopup?.close();
     renderError(error instanceof Error ? error.message : String(error));
   } finally {
     deleteButton.disabled = false;

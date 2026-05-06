@@ -21,6 +21,7 @@ const endpointGroups = [
       { label: "All Songs", path: "/api/songs" },
       { label: "One Song", path: "/api/songs/:songId" },
       { label: "Update Song", path: "/api/songs/:songId" },
+      { label: "Delete Song", path: "/api/songs/:songId" },
     ],
   },
   {
@@ -80,7 +81,12 @@ for (const group of endpointGroups) {
     row.querySelector("button").addEventListener("click", async () => {
       try {
         await copyText(fullUrl);
-        window.adminPopup?.success("API URL copied to clipboard.", "Copied");
+        window.adminPopup?.flash({
+          type: "success",
+          eyebrow: "Copied",
+          title: "API URL copied",
+          message: "The production API URL is now in your clipboard.",
+        });
       } catch (error) {
         window.adminPopup?.error("Unable to copy the API URL.", "Copy Failed");
       }

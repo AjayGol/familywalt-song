@@ -9,12 +9,16 @@
   <body>
     <main class="page">
       <header class="topbar">
-        <a class="topbar__brand" href="/">Song Admin</a>
+        <a class="topbar__brand" href="/">
+          <span class="topbar__brand-main">Song Admin</span>
+          <span class="topbar__brand-sub">Dev by BS Patel</span>
+        </a>
         <nav class="topbar__nav">
           <a href="/">Home</a>
           <a class="is-active" href="/upload.html">Upload</a>
           <a href="/player.html">Player</a>
           <a href="/edit.html">Edit</a>
+          <a href="/api.html">Get API</a>
         </nav>
       </header>
 
@@ -73,6 +77,10 @@
         <pre id="result-output" class="result">Waiting for upload.</pre>
       </section>
     </main>
+    <footer class="page-footer">
+      <span>Dev by BS Patel</span>
+      <span>Automatic Hindi title generation enabled</span>
+    </footer>
 
     <script src="/popup.js"></script>
     <script src="/upload.js"></script>

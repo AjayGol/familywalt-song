@@ -17,6 +17,45 @@ function getSelectedFiles() {
   return [...(filesInput.files || []), ...(folderInput.files || [])];
 }
 
+function uploadWithProgress(formData, onProgress) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/uploads/bulk");
+
+    xhr.upload.addEventListener("progress", (event) => {
+      if (!event.lengthComputable) {
+        return;
+      }
+
+      const percent = Math.round((event.loaded / event.total) * 100);
+      onProgress(percent);
+    });
+
+    xhr.addEventListener("load", () => {
+      let payload = null;
+
+      try {
+        payload = JSON.parse(xhr.responseText || "{}");
+      } catch {
+        payload = { error: "Invalid server response." };
+      }
+
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(payload);
+        return;
+      }
+
+      reject(new Error(payload.error || "Upload failed."));
+    });
+
+    xhr.addEventListener("error", () => {
+      reject(new Error("Upload request failed."));
+    });
+
+    xhr.send(formData);
+  });
+}
+
 function updateSelectionSummary() {
   const files = getSelectedFiles();
 
@@ -53,7 +92,7 @@ async function uploadFiles(event) {
   if (!files.length) {
     resultOutput.textContent = "Please select at least one audio file or one folder.";
     setStatus("Error", "error");
-    window.adminPopup?.error("Select at least one audio file or one folder.");
+    await window.adminPopup?.error("Select at least one audio file or one folder.");
     return;
   }
 
@@ -67,29 +106,32 @@ async function uploadFiles(event) {
   uploadButton.disabled = true;
   setStatus("Uploading", "busy");
   resultOutput.textContent = "Uploading files...";
+  const progressPopup = window.adminPopup?.showLoading({
+    eyebrow: "Uploading Songs",
+    title: "Bulk upload in progress",
+    message: "Uploading files and preparing metadata.",
+    progress: 0,
+    progressText: "0%",
+  });
 
   try {
-    const response = await fetch("/api/uploads/bulk", {
-      method: "POST",
-      body: formData,
+    const payload = await uploadWithProgress(formData, (percent) => {
+      progressPopup?.setProgress(percent, `${percent}% uploaded`);
+      progressPopup?.setMessage(`Uploading files to the server. ${percent}% completed.`);
     });
-
-    const payload = await response.json();
-
-    if (!response.ok) {
-      throw new Error(payload.error || "Upload failed.");
-    }
 
     resultOutput.textContent = JSON.stringify(payload, null, 2);
     setStatus("Done", "success");
-    window.adminPopup?.success(
+    progressPopup?.close();
+    await window.adminPopup?.success(
       `Uploaded ${payload.uploaded}, skipped ${payload.skipped}, failed ${payload.failed}.`,
       "Upload Complete",
     );
   } catch (error) {
+    progressPopup?.close();
     resultOutput.textContent = error instanceof Error ? error.message : String(error);
     setStatus("Error", "error");
-    window.adminPopup?.error(error instanceof Error ? error.message : String(error), "Upload Failed");
+    await window.adminPopup?.error(error instanceof Error ? error.message : String(error), "Upload Failed");
   } finally {
     uploadButton.disabled = false;
   }
