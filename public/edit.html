@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edit Song</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="topbar">
+        <a class="topbar__brand" href="/">Song Admin</a>
+        <nav class="topbar__nav">
+          <a href="/upload.html">Upload</a>
+          <a href="/player.html">Player</a>
+          <a class="is-active" href="/edit.html">Edit</a>
+        </nav>
+      </header>
+
+      <section class="panel hero">
+        <p class="eyebrow">Edit Song</p>
+        <h1>Change song details after upload</h1>
+        <p class="intro">
+          Load a song from the list, then update the title, artist, or category. If category changes, the
+          stored R2 files will move into the matching category folders.
+        </p>
+      </section>
+
+      <section class="player-layout">
+        <section class="panel">
+          <div class="section-head">
+            <h2>Song List</h2>
+          </div>
+
+          <label class="field">
+            <span>Category</span>
+            <select id="edit-category-filter"></select>
+          </label>
+
+          <div id="edit-song-list" class="song-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="section-head">
+            <h2>Edit Details</h2>
+            <span id="edit-status-badge" class="badge idle">Idle</span>
+          </div>
+
+          <div id="edit-empty" class="player-empty">Select a song from the left to edit it.</div>
+
+          <div id="edit-form-shell" class="edit-shell is-hidden">
+            <div class="edit-preview">
+              <img id="edit-cover" class="edit-cover" alt="Song cover" />
+              <audio id="edit-audio" class="player-audio" controls preload="metadata"></audio>
+            </div>
+
+            <form id="edit-form" class="upload-form">
+              <input id="edit-song-id" type="hidden" />
+
+              <label class="field">
+                <span>Song Name</span>
+                <input id="edit-title" type="text" required />
+              </label>
+
+              <label class="field">
+                <span>Artist Name</span>
+                <input id="edit-artist" type="text" required />
+              </label>
+
+              <label class="field">
+                <span>Category</span>
+                <select id="edit-category" required></select>
+              </label>
+
+              <div class="actions">
+                <button id="save-button" type="submit">Save Changes</button>
+                <a id="edit-player-link" class="button-link secondary-link" href="/player.html">Open in Player</a>
+              </div>
+            </form>
+
+            <pre id="edit-result" class="result edit-result">Waiting for changes.</pre>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="/edit.js"></script>
+  </body>
+</html>

@@ -1,10 +1,11 @@
 const { randomUUID } = require("node:crypto");
 const fs = require("node:fs/promises");
 const path = require("node:path");
+const mongoose = require("mongoose");
 const { getCategoryConfig } = require("../config/categories");
 const { Song } = require("../models/song");
 const { prepareUploadAssets } = require("../lib/media");
-const { deleteObject, ensureCategoryFoldersExist, putObject } = require("../lib/r2");
+const { copyObject, deleteObject, ensureCategoryFoldersExist, getPublicUrl, putObject } = require("../lib/r2");
 
 function normalizeText(value) {
   return `${value || ""}`.trim().toLowerCase();
@@ -177,10 +178,114 @@ async function getSongById(songId) {
   return Song.findById(songId).lean();
 }
 
+async function updateSongMetadata(songId, input) {
+  if (!mongoose.isValidObjectId(songId)) {
+    throw new Error("Invalid song id.");
+  }
+
+  const song = await Song.findById(songId);
+
+  if (!song) {
+    throw new Error("Song not found.");
+  }
+
+  const title = `${input.title || ""}`.trim();
+  const artist = `${input.artist || ""}`.trim();
+  const category = getCategoryConfig(input.category);
+
+  if (!title) {
+    throw new Error("Title is required.");
+  }
+
+  if (!artist) {
+    throw new Error("Artist is required.");
+  }
+
+  if (!category) {
+    throw new Error("Invalid category.");
+  }
+
+  const normalizedTitle = normalizeText(title);
+  const normalizedArtist = normalizeText(artist);
+  const oldCategory = getCategoryConfig(song.category);
+  const categoryChanged = song.category !== category.value;
+  const duplicate = await Song.findOne({
+    _id: { $ne: song._id },
+    category: category.value,
+    normalizedTitle,
+    normalizedArtist,
+  }).lean();
+
+  if (duplicate) {
+    throw new Error("Another song with the same title and artist already exists in this category.");
+  }
+
+  let nextAudioKey = song.audioKey;
+  let nextImageKey = song.imageKey;
+  let nextAudioUrl = song.audioUrl;
+  let nextImageUrl = song.imageUrl;
+
+  if (categoryChanged) {
+    await ensureCategoryFoldersExist();
+
+    const audioExtension = path.extname(song.audioKey);
+    const imageExtension = path.extname(song.imageKey);
+    const fileId = randomUUID();
+
+    nextAudioKey = `songs/${category.rootFolder}/${category.songFolder}/${fileId}${audioExtension}`;
+    nextImageKey = `songs/${category.rootFolder}/${category.imageFolder}/${fileId}${imageExtension}`;
+
+    try {
+      [nextAudioUrl, nextImageUrl] = await Promise.all([
+        copyObject(song.audioKey, nextAudioKey),
+        copyObject(song.imageKey, nextImageKey),
+      ]);
+    } catch (error) {
+      await Promise.allSettled([
+        nextAudioKey !== song.audioKey ? deleteObject(nextAudioKey) : Promise.resolve(),
+        nextImageKey !== song.imageKey ? deleteObject(nextImageKey) : Promise.resolve(),
+      ]);
+      throw error;
+    }
+  } else {
+    nextAudioUrl = getPublicUrl(song.audioKey);
+    nextImageUrl = getPublicUrl(song.imageKey);
+  }
+
+  const previousAudioKey = song.audioKey;
+  const previousImageKey = song.imageKey;
+
+  song.title = title;
+  song.artist = artist;
+  song.normalizedTitle = normalizedTitle;
+  song.normalizedArtist = normalizedArtist;
+  song.category = category.value;
+  song.audioKey = nextAudioKey;
+  song.imageKey = nextImageKey;
+  song.audioUrl = nextAudioUrl;
+  song.imageUrl = nextImageUrl;
+
+  try {
+    await song.save();
+  } catch (error) {
+    if (categoryChanged) {
+      await Promise.allSettled([deleteObject(nextAudioKey), deleteObject(nextImageKey)]);
+    }
+    throw error;
+  }
+
+  if (categoryChanged) {
+    await Promise.allSettled([deleteObject(previousAudioKey), deleteObject(previousImageKey)]);
+  }
+
+  return song.toObject();
+}
+
 module.exports = {
   countSongsByCategory,
   getSongById,
   listSongs,
+  updateSongMetadata,
   uploadSongFile,
   uploadManySongs,
 };

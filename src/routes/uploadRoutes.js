@@ -4,7 +4,7 @@ const os = require("node:os");
 const path = require("node:path");
 const multer = require("multer");
 const { getCategories, getCategoryByApiId, getCategoryConfig } = require("../config/categories");
-const { countSongsByCategory, getSongById, listSongs, uploadManySongs, uploadSongFile } = require("../services/songUploadService");
+const { countSongsByCategory, getSongById, listSongs, updateSongMetadata, uploadManySongs, uploadSongFile } = require("../services/songUploadService");
 
 const uploadDir = path.join(os.tmpdir(), "uploadback-incoming");
 fs.mkdirSync(uploadDir, { recursive: true });
@@ -61,6 +61,29 @@ function serializeMobileSong(song) {
   };
 }
 
+function serializeAdminSong(song) {
+  const category = getCategoryConfig(song.category);
+
+  return {
+    id: String(song._id),
+    title: song.title,
+    artist: song.artist,
+    category: song.category,
+    categoryApiId: category?.apiId || song.category,
+    categoryLabel: category?.label || song.category,
+    imageUrl: song.imageUrl,
+    audioUrl: song.audioUrl,
+    audioKey: song.audioKey,
+    imageKey: song.imageKey,
+    durationSeconds: song.durationSeconds,
+    originalFileName: song.originalFileName,
+    mimeType: song.mimeType,
+    imageMimeType: song.imageMimeType,
+    createdAt: song.createdAt,
+    updatedAt: song.updatedAt,
+  };
+}
+
 router.get("/health", (request, response) => {
   response.json({ ok: true });
 });
@@ -89,8 +112,51 @@ router.get("/songs", async (request, response, next) => {
       category,
     });
 
-    response.json({ songs });
+    response.json({ songs: songs.map(serializeAdminSong) });
   } catch (error) {
+    next(error);
+  }
+});
+
+router.get("/songs/:songId", async (request, response, next) => {
+  try {
+    const song = await getSongById(request.params.songId);
+
+    if (!song) {
+      response.status(404).json({ error: "Song not found." });
+      return;
+    }
+
+    response.json({ song: serializeAdminSong(song) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.patch("/songs/:songId", async (request, response, next) => {
+  try {
+    const updatedSong = await updateSongMetadata(request.params.songId, request.body || {});
+    response.json({
+      ok: true,
+      song: serializeAdminSong(updatedSong),
+    });
+  } catch (error) {
+    if (error instanceof Error && (error.message === "Song not found." || error.message === "Invalid song id.")) {
+      response.status(404).json({ error: error.message });
+      return;
+    }
+
+    if (
+      error instanceof Error &&
+      (error.message === "Title is required." ||
+        error.message === "Artist is required." ||
+        error.message === "Invalid category." ||
+        error.message === "Another song with the same title and artist already exists in this category.")
+    ) {
+      response.status(400).json({ error: error.message });
+      return;
+    }
+
     next(error);
   }
 });

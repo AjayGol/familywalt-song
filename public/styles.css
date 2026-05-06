@@ -90,7 +90,8 @@ button {
 
 .topbar__brand,
 .topbar__nav a,
-.nav-card {
+.nav-card,
+.button-link {
   text-decoration: none;
 }
 
@@ -239,6 +240,24 @@ button:disabled {
 }
 
 button.secondary {
+  color: var(--ink);
+  background: #eadbc8;
+}
+
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  padding: 14px 22px;
+  cursor: pointer;
+  font-weight: 700;
+  color: #fff8f3;
+  background: linear-gradient(180deg, var(--accent), var(--accent-dark));
+}
+
+.secondary-link {
   color: var(--ink);
   background: #eadbc8;
 }
@@ -393,6 +412,32 @@ button.secondary {
 
 .player-audio {
   width: 100%;
+}
+
+.edit-shell {
+  display: grid;
+  gap: 20px;
+}
+
+.edit-shell.is-hidden {
+  display: none;
+}
+
+.edit-preview {
+  display: grid;
+  gap: 14px;
+}
+
+.edit-cover {
+  width: min(100%, 320px);
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+}
+
+.edit-result {
+  min-height: 180px;
 }
 
 @media (max-width: 760px) {

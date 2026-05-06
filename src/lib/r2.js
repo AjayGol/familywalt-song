@@ -1,4 +1,4 @@
-const { PutObjectCommand, DeleteObjectCommand, S3Client } = require("@aws-sdk/client-s3");
+const { PutObjectCommand, DeleteObjectCommand, CopyObjectCommand, S3Client } = require("@aws-sdk/client-s3");
 const { getEnv } = require("../config/env");
 const { getCategories } = require("../config/categories");
 
@@ -57,6 +57,26 @@ async function deleteObject(key) {
   );
 }
 
+async function copyObject(sourceKey, destinationKey) {
+  const env = getEnv();
+  const client = getR2Client();
+  const encodedSource = `${env.r2Bucket}/${sourceKey
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/")}`;
+
+  await client.send(
+    new CopyObjectCommand({
+      Bucket: env.r2Bucket,
+      CopySource: encodedSource,
+      Key: destinationKey,
+      MetadataDirective: "COPY",
+    }),
+  );
+
+  return getPublicUrl(destinationKey);
+}
+
 async function ensureCategoryFoldersExist() {
   if (ensuredFoldersPromise) {
     return ensuredFoldersPromise;
@@ -91,6 +111,7 @@ async function ensureCategoryFoldersExist() {
 }
 
 module.exports = {
+  copyObject,
   getPublicUrl,
   putObject,
   deleteObject,

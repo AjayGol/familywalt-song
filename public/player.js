@@ -7,6 +7,7 @@ const playerTitle = document.getElementById("player-title");
 const playerArtist = document.getElementById("player-artist");
 const playerCategoryLabel = document.getElementById("player-category-label");
 const playerAudio = document.getElementById("player-audio");
+const playerEditLink = document.getElementById("player-edit-link");
 
 let categories = [];
 let songs = [];
@@ -52,6 +53,7 @@ function selectSong(song) {
   playerArtist.textContent = song.artist;
   playerCategoryLabel.textContent = formatCategoryLabel(song.category);
   playerAudio.src = song.audioUrl;
+  playerEditLink.href = `/edit.html?id=${encodeURIComponent(song.id)}`;
   playerAudio.play().catch(() => {});
 }
 
