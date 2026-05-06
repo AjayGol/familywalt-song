@@ -8,9 +8,11 @@ const playerArtist = document.getElementById("player-artist");
 const playerCategoryLabel = document.getElementById("player-category-label");
 const playerAudio = document.getElementById("player-audio");
 const playerEditLink = document.getElementById("player-edit-link");
+const playerLanguage = document.getElementById("player-language");
 
 let categories = [];
 let songs = [];
+let currentLanguage = "en";
 
 function formatCategoryLabel(value) {
   const category = categories.find((item) => item.value === value);
@@ -35,7 +37,7 @@ function renderSongs() {
     button.innerHTML = `
       <img src="${song.imageUrl}" alt="${song.title}" />
       <div class="song-item__content">
-        <strong>${song.title}</strong>
+        <strong>${song.displayTitle || song.title}</strong>
         <span>${song.artist}</span>
       </div>
     `;
@@ -49,7 +51,7 @@ function selectSong(song) {
   playerCard.classList.remove("is-hidden");
   playerCover.src = song.imageUrl;
   playerCover.alt = song.title;
-  playerTitle.textContent = song.title;
+  playerTitle.textContent = song.displayTitle || song.title;
   playerArtist.textContent = song.artist;
   playerCategoryLabel.textContent = formatCategoryLabel(song.category);
   playerAudio.src = song.audioUrl;
@@ -74,7 +76,9 @@ async function loadCategories() {
 
 async function loadSongs() {
   const category = categorySelect.value;
-  const response = await fetch(`/api/songs?category=${encodeURIComponent(category)}&limit=100`);
+  const response = await fetch(
+    `/api/songs?category=${encodeURIComponent(category)}&limit=100&lang=${encodeURIComponent(currentLanguage)}`,
+  );
   const payload = await response.json();
   songs = payload.songs || [];
   renderSongs();
@@ -90,6 +94,13 @@ async function loadSongs() {
 }
 
 categorySelect.addEventListener("change", () => {
+  loadSongs().catch((error) => {
+    songList.innerHTML = `<div class="song-list__empty">${error instanceof Error ? error.message : String(error)}</div>`;
+  });
+});
+
+playerLanguage.addEventListener("change", () => {
+  currentLanguage = playerLanguage.value;
   loadSongs().catch((error) => {
     songList.innerHTML = `<div class="song-list__empty">${error instanceof Error ? error.message : String(error)}</div>`;
   });

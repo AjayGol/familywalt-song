@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API URLs</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="topbar">
+        <a class="topbar__brand" href="/">Song Admin</a>
+        <nav class="topbar__nav">
+          <a href="/">Home</a>
+          <a href="/upload.html">Upload</a>
+          <a href="/player.html">Player</a>
+          <a href="/edit.html">Edit</a>
+          <a class="is-active" href="/api.html">Get API</a>
+        </nav>
+      </header>
+
+      <section class="panel hero">
+        <p class="eyebrow">API URLs</p>
+        <h1>Copy API links for developers</h1>
+        <p class="intro">
+          Use these URLs directly in Android, frontend, or Postman. The base URL updates automatically from
+          the current hosted domain.
+        </p>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <h2>Base URL</h2>
+        </div>
+        <pre id="api-base-url" class="result api-base"></pre>
+      </section>
+
+      <section class="api-grid" id="api-grid"></section>
+    </main>
+
+    <script src="/api.js"></script>
+  </body>
+</html>

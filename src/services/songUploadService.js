@@ -6,6 +6,7 @@ const { getCategoryConfig } = require("../config/categories");
 const { Song } = require("../models/song");
 const { prepareUploadAssets } = require("../lib/media");
 const { copyObject, deleteObject, ensureCategoryFoldersExist, getPublicUrl, putObject } = require("../lib/r2");
+const { generateHindiTitle } = require("../lib/titleLocalization");
 
 function normalizeText(value) {
   return `${value || ""}`.trim().toLowerCase();
@@ -73,6 +74,7 @@ async function uploadSongFile(file, categoryInput, options = {}) {
     const song = await Song.create({
       title: prepared.title,
       artist: prepared.artist,
+      titleHindi: generateHindiTitle(prepared.title),
       normalizedTitle,
       normalizedArtist,
       category: category.value,
@@ -190,6 +192,7 @@ async function updateSongMetadata(songId, input) {
   }
 
   const title = `${input.title || ""}`.trim();
+  const titleHindiInput = `${input.titleHindi || ""}`.trim();
   const artist = `${input.artist || ""}`.trim();
   const category = getCategoryConfig(input.category);
 
@@ -257,6 +260,7 @@ async function updateSongMetadata(songId, input) {
 
   song.title = title;
   song.artist = artist;
+  song.titleHindi = titleHindiInput || generateHindiTitle(title);
   song.normalizedTitle = normalizedTitle;
   song.normalizedArtist = normalizedArtist;
   song.category = category.value;
@@ -281,8 +285,35 @@ async function updateSongMetadata(songId, input) {
   return song.toObject();
 }
 
+async function deleteSong(songId) {
+  if (!mongoose.isValidObjectId(songId)) {
+    throw new Error("Invalid song id.");
+  }
+
+  const song = await Song.findById(songId);
+
+  if (!song) {
+    throw new Error("Song not found.");
+  }
+
+  const audioKey = song.audioKey;
+  const imageKey = song.imageKey;
+
+  await song.deleteOne();
+  await Promise.allSettled([deleteObject(audioKey), deleteObject(imageKey)]);
+
+  return {
+    id: String(song._id),
+    title: song.title,
+    titleHindi: song.titleHindi || generateHindiTitle(song.title),
+    artist: song.artist,
+    category: song.category,
+  };
+}
+
 module.exports = {
   countSongsByCategory,
+  deleteSong,
   getSongById,
   listSongs,
   updateSongMetadata,

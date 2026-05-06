@@ -4,7 +4,8 @@ const os = require("node:os");
 const path = require("node:path");
 const multer = require("multer");
 const { getCategories, getCategoryByApiId, getCategoryConfig } = require("../config/categories");
-const { countSongsByCategory, getSongById, listSongs, updateSongMetadata, uploadManySongs, uploadSongFile } = require("../services/songUploadService");
+const { countSongsByCategory, deleteSong, getSongById, listSongs, updateSongMetadata, uploadManySongs, uploadSongFile } = require("../services/songUploadService");
+const { generateHindiTitle, getDisplayTitle } = require("../lib/titleLocalization");
 
 const uploadDir = path.join(os.tmpdir(), "uploadback-incoming");
 fs.mkdirSync(uploadDir, { recursive: true });
@@ -46,12 +47,19 @@ const upload = multer({
 
 const router = express.Router();
 
-function serializeMobileSong(song) {
+function getRequestedLanguage(request) {
+  return typeof request.query.lang === "string" ? request.query.lang : "en";
+}
+
+function serializeMobileSong(song, language = "en") {
   const category = getCategoryConfig(song.category);
+  const titleHindi = song.titleHindi || generateHindiTitle(song.title);
 
   return {
     id: String(song._id),
     title: song.title,
+    titleHindi,
+    displayTitle: getDisplayTitle({ ...song, titleHindi }, language),
     artist: song.artist,
     category: category?.apiId || song.category,
     imageUrl: song.imageUrl,
@@ -61,12 +69,15 @@ function serializeMobileSong(song) {
   };
 }
 
-function serializeAdminSong(song) {
+function serializeAdminSong(song, language = "en") {
   const category = getCategoryConfig(song.category);
+  const titleHindi = song.titleHindi || generateHindiTitle(song.title);
 
   return {
     id: String(song._id),
     title: song.title,
+    titleHindi,
+    displayTitle: getDisplayTitle({ ...song, titleHindi }, language),
     artist: song.artist,
     category: song.category,
     categoryApiId: category?.apiId || song.category,
@@ -102,6 +113,7 @@ router.get("/categories", (request, response) => {
 
 router.get("/songs", async (request, response, next) => {
   try {
+    const language = getRequestedLanguage(request);
     const category =
       typeof request.query.category === "string" && request.query.category.trim()
         ? getCategoryConfig(request.query.category)?.value || null
@@ -112,7 +124,7 @@ router.get("/songs", async (request, response, next) => {
       category,
     });
 
-    response.json({ songs: songs.map(serializeAdminSong) });
+    response.json({ songs: songs.map((song) => serializeAdminSong(song, language)) });
   } catch (error) {
     next(error);
   }
@@ -120,6 +132,7 @@ router.get("/songs", async (request, response, next) => {
 
 router.get("/songs/:songId", async (request, response, next) => {
   try {
+    const language = getRequestedLanguage(request);
     const song = await getSongById(request.params.songId);
 
     if (!song) {
@@ -127,7 +140,7 @@ router.get("/songs/:songId", async (request, response, next) => {
       return;
     }
 
-    response.json({ song: serializeAdminSong(song) });
+    response.json({ song: serializeAdminSong(song, language) });
   } catch (error) {
     next(error);
   }
@@ -135,10 +148,11 @@ router.get("/songs/:songId", async (request, response, next) => {
 
 router.patch("/songs/:songId", async (request, response, next) => {
   try {
+    const language = getRequestedLanguage(request);
     const updatedSong = await updateSongMetadata(request.params.songId, request.body || {});
     response.json({
       ok: true,
-      song: serializeAdminSong(updatedSong),
+      song: serializeAdminSong(updatedSong, language),
     });
   } catch (error) {
     if (error instanceof Error && (error.message === "Song not found." || error.message === "Invalid song id.")) {
@@ -154,6 +168,23 @@ router.patch("/songs/:songId", async (request, response, next) => {
         error.message === "Another song with the same title and artist already exists in this category.")
     ) {
       response.status(400).json({ error: error.message });
+      return;
+    }
+
+    next(error);
+  }
+});
+
+router.delete("/songs/:songId", async (request, response, next) => {
+  try {
+    const deletedSong = await deleteSong(request.params.songId);
+    response.json({
+      ok: true,
+      song: deletedSong,
+    });
+  } catch (error) {
+    if (error instanceof Error && (error.message === "Song not found." || error.message === "Invalid song id.")) {
+      response.status(404).json({ error: error.message });
       return;
     }
 
@@ -180,6 +211,7 @@ router.get("/mobile/categories", async (request, response, next) => {
 
 router.get("/mobile/categories/:categoryId/songs", async (request, response, next) => {
   try {
+    const language = getRequestedLanguage(request);
     const category = getCategoryByApiId(request.params.categoryId);
 
     if (!category) {
@@ -199,7 +231,8 @@ router.get("/mobile/categories/:categoryId/songs", async (request, response, nex
         description: category.description,
       },
       total: songs.length,
-      songs: songs.map(serializeMobileSong),
+      language,
+      songs: songs.map((song) => serializeMobileSong(song, language)),
     });
   } catch (error) {
     next(error);
@@ -208,6 +241,7 @@ router.get("/mobile/categories/:categoryId/songs", async (request, response, nex
 
 router.get("/mobile/songs/:songId", async (request, response, next) => {
   try {
+    const language = getRequestedLanguage(request);
     const song = await getSongById(request.params.songId);
 
     if (!song) {
@@ -219,7 +253,7 @@ router.get("/mobile/songs/:songId", async (request, response, next) => {
 
     response.json({
       song: {
-        ...serializeMobileSong(song),
+        ...serializeMobileSong(song, language),
         categoryTitle: category?.label || song.category,
         originalFileName: song.originalFileName,
         mimeType: song.mimeType,

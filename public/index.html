@@ -3,39 +3,105 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Song Admin</title>
+    <title>Song Admin Panel</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
     <main class="page shell-page">
+      <header class="topbar">
+        <a class="topbar__brand" href="/">Song Admin</a>
+        <nav class="topbar__nav">
+          <a class="is-active" href="/">Home</a>
+          <a href="/upload.html">Upload</a>
+          <a href="/player.html">Player</a>
+          <a href="/edit.html">Edit</a>
+          <a href="/api.html">Get API</a>
+        </nav>
+      </header>
+
       <section class="panel shell-hero">
-        <p class="eyebrow">Song Backend</p>
-        <h1>Upload and play devotional songs</h1>
+        <p class="eyebrow">Simple Admin Panel</p>
+        <h1>Manage songs in one simple place</h1>
         <p class="intro">
-          Use the upload page to send songs into the selected R2 category folder. Use the player page to
-          browse songs by category and play them normally.
+          Use upload for new songs, player for checking English or Hindi titles, edit for changing names and
+          category, and get API for developer links.
         </p>
       </section>
 
-      <section class="shell-grid">
-        <a class="nav-card" href="/upload.html">
-          <span class="nav-card__eyebrow">Uploader</span>
-          <h2>Open Upload Page</h2>
-          <p>Select category, upload single file, multiple files, or a full folder.</p>
-        </a>
+      <section class="simple-sections">
+        <section class="panel simple-section" id="upload-section">
+          <p class="nav-card__eyebrow">Upload</p>
+          <h2>Bulk Upload</h2>
+          <p>
+            Upload a single file, many files, or a full folder. English title uploads also generate Hindi
+            title automatically.
+          </p>
+          <div class="actions">
+            <a class="button-link" href="/upload.html">Open Upload</a>
+          </div>
+        </section>
 
-        <a class="nav-card" href="/player.html">
-          <span class="nav-card__eyebrow">Player</span>
-          <h2>Open Song Player</h2>
-          <p>Filter by category, see cover art, and play songs in a simple audio player.</p>
-        </a>
+        <section class="panel simple-section" id="player-section">
+          <p class="nav-card__eyebrow">Player</p>
+          <h2>Check Playback</h2>
+          <p>
+            Play songs normally and switch the title language from English to Hindi at the top of the player
+            page.
+          </p>
+          <div class="actions">
+            <a class="button-link" href="/player.html">Open Player</a>
+          </div>
+        </section>
 
-        <a class="nav-card" href="/edit.html">
-          <span class="nav-card__eyebrow">Editor</span>
-          <h2>Open Edit Page</h2>
-          <p>Update song name, artist, and category after upload.</p>
-        </a>
+        <section class="panel simple-section" id="edit-section">
+          <p class="nav-card__eyebrow">Edit</p>
+          <h2>Edit Song Details</h2>
+          <p>
+            Update English title, Hindi title, artist name, category, or delete the song completely with its
+            R2 files.
+          </p>
+          <div class="actions">
+            <a class="button-link" href="/edit.html">Open Edit</a>
+          </div>
+        </section>
+
+        <section class="panel simple-section" id="api-section">
+          <p class="nav-card__eyebrow">Get API</p>
+          <h2>Copy Mobile APIs</h2>
+          <p>Share these exact API URLs with the other developer.</p>
+          <div class="api-short-list">
+            <div class="api-short-row">
+              <code>https://familywalt-song.onrender.com/api/mobile/categories</code>
+              <button type="button" data-copy="https://familywalt-song.onrender.com/api/mobile/categories">Copy</button>
+            </div>
+            <div class="api-short-row">
+              <code>https://familywalt-song.onrender.com/api/mobile/categories/chalisa/songs</code>
+              <button type="button" data-copy="https://familywalt-song.onrender.com/api/mobile/categories/chalisa/songs">Copy</button>
+            </div>
+            <div class="api-short-row">
+              <code>https://familywalt-song.onrender.com/api/mobile/categories/sundarkand/songs</code>
+              <button type="button" data-copy="https://familywalt-song.onrender.com/api/mobile/categories/sundarkand/songs">Copy</button>
+            </div>
+            <div class="api-short-row">
+              <code>https://familywalt-song.onrender.com/api/mobile/categories/path/songs</code>
+              <button type="button" data-copy="https://familywalt-song.onrender.com/api/mobile/categories/path/songs">Copy</button>
+            </div>
+            <div class="api-short-row">
+              <code>https://familywalt-song.onrender.com/api/mobile/categories/mantra/songs</code>
+              <button type="button" data-copy="https://familywalt-song.onrender.com/api/mobile/categories/mantra/songs">Copy</button>
+            </div>
+            <div class="api-short-row">
+              <code>https://familywalt-song.onrender.com/api/mobile/categories/aarti/songs</code>
+              <button type="button" data-copy="https://familywalt-song.onrender.com/api/mobile/categories/aarti/songs">Copy</button>
+            </div>
+          </div>
+          <div class="actions">
+            <a class="button-link secondary-link" href="/api.html">Open Full API Page</a>
+          </div>
+        </section>
       </section>
     </main>
+
+    <script src="/panel.js"></script>
   </body>
 </html>

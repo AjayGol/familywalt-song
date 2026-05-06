@@ -12,6 +12,11 @@ const songSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    titleHindi: {
+      type: String,
+      default: "",
+      trim: true,
+    },
     normalizedTitle: {
       type: String,
       required: true,
