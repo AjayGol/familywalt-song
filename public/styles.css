@@ -564,6 +564,110 @@ button.secondary {
   min-height: auto;
 }
 
+.popup-root {
+  position: relative;
+  z-index: 1000;
+}
+
+.popup-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(23, 14, 8, 0.42);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.popup-backdrop.is-hidden {
+  display: none;
+}
+
+.popup-modal {
+  width: min(460px, 100%);
+  background: rgba(255, 250, 244, 0.98);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  padding: 24px;
+  display: grid;
+  gap: 14px;
+}
+
+.popup-modal__icon {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #f2ddc8;
+  color: var(--accent-dark);
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.popup-modal__title,
+.simple-section h2 {
+  margin: 0;
+}
+
+.popup-modal__message {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.popup-modal__actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.popup-toast-stack {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: grid;
+  gap: 12px;
+  width: min(360px, calc(100vw - 24px));
+}
+
+.popup-toast {
+  display: grid;
+  gap: 6px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--line);
+  background: rgba(255, 250, 244, 0.98);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.popup-toast strong {
+  font-size: 0.98rem;
+}
+
+.popup-toast span {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.popup-toast--success {
+  border-color: rgba(29, 107, 61, 0.25);
+}
+
+.popup-toast--error {
+  border-color: rgba(176, 48, 48, 0.25);
+}
+
+.popup-toast--info {
+  border-color: rgba(116, 42, 10, 0.18);
+}
+
+.popup-toast.is-leaving {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
 @media (max-width: 760px) {
   .page {
     width: min(100% - 20px, 100%);
@@ -595,5 +699,12 @@ button.secondary {
   .topbar {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .popup-toast-stack {
+    left: 12px;
+    right: 12px;
+    width: auto;
+    top: 12px;
   }
 }

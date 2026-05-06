@@ -4,16 +4,9 @@ for (const button of document.querySelectorAll("[data-copy]")) {
 
     try {
       await navigator.clipboard.writeText(text);
-      const previous = button.textContent;
-      button.textContent = "Copied";
-      setTimeout(() => {
-        button.textContent = previous;
-      }, 1200);
+      window.adminPopup?.success("API URL copied to clipboard.", "Copied");
     } catch {
-      button.textContent = "Failed";
-      setTimeout(() => {
-        button.textContent = "Copy";
-      }, 1200);
+      window.adminPopup?.error("Unable to copy the API URL.", "Copy Failed");
     }
   });
 }

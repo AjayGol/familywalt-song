@@ -53,6 +53,7 @@ async function uploadFiles(event) {
   if (!files.length) {
     resultOutput.textContent = "Please select at least one audio file or one folder.";
     setStatus("Error", "error");
+    window.adminPopup?.error("Select at least one audio file or one folder.");
     return;
   }
 
@@ -81,9 +82,14 @@ async function uploadFiles(event) {
 
     resultOutput.textContent = JSON.stringify(payload, null, 2);
     setStatus("Done", "success");
+    window.adminPopup?.success(
+      `Uploaded ${payload.uploaded}, skipped ${payload.skipped}, failed ${payload.failed}.`,
+      "Upload Complete",
+    );
   } catch (error) {
     resultOutput.textContent = error instanceof Error ? error.message : String(error);
     setStatus("Error", "error");
+    window.adminPopup?.error(error instanceof Error ? error.message : String(error), "Upload Failed");
   } finally {
     uploadButton.disabled = false;
   }
@@ -109,4 +115,5 @@ loadCategories()
   .catch((error) => {
     resultOutput.textContent = error instanceof Error ? error.message : String(error);
     setStatus("Error", "error");
+    window.adminPopup?.error(error instanceof Error ? error.message : String(error), "Category Load Failed");
   });

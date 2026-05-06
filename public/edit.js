@@ -47,6 +47,7 @@ function updateUrl(songId, category) {
 function renderError(message) {
   setStatus("Error", "error");
   editResult.textContent = message;
+  window.adminPopup?.error(message, "Edit Error");
 }
 
 function renderSongList() {
@@ -191,6 +192,7 @@ async function saveSong(event) {
     selectedSong = payload.song;
     editResult.textContent = JSON.stringify(payload, null, 2);
     setStatus("Saved", "success");
+    window.adminPopup?.success("Song details updated successfully.", "Song Saved");
     editCategoryFilter.value = selectedSong.category;
     await loadSongs(selectedSong.id);
     await loadSong(selectedSong.id);
@@ -207,7 +209,14 @@ async function deleteCurrentSong() {
     return;
   }
 
-  const confirmed = window.confirm("Delete this song and its stored files?");
+  const confirmed = await window.adminPopup.confirm({
+    title: "Delete Song",
+    message: "Delete this song and its stored files?",
+    confirmText: "Delete",
+    cancelText: "Cancel",
+    danger: true,
+    icon: "!",
+  });
 
   if (!confirmed) {
     return;
@@ -231,6 +240,7 @@ async function deleteCurrentSong() {
     editFormShell.classList.add("is-hidden");
     editResult.textContent = JSON.stringify(payload, null, 2);
     setStatus("Deleted", "success");
+    window.adminPopup?.success("Song deleted successfully.", "Song Deleted");
     updateUrl("", editCategoryFilter.value);
     await loadSongs();
   } catch (error) {

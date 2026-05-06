@@ -1,6 +1,6 @@
 const baseUrlBox = document.getElementById("api-base-url");
 const apiGrid = document.getElementById("api-grid");
-const baseUrl = window.location.origin;
+const baseUrl = "https://familywalt-song.onrender.com";
 
 const endpointGroups = [
   {
@@ -80,12 +80,9 @@ for (const group of endpointGroups) {
     row.querySelector("button").addEventListener("click", async () => {
       try {
         await copyText(fullUrl);
-        row.querySelector("button").textContent = "Copied";
-        setTimeout(() => {
-          row.querySelector("button").textContent = "Copy";
-        }, 1200);
+        window.adminPopup?.success("API URL copied to clipboard.", "Copied");
       } catch (error) {
-        row.querySelector("button").textContent = "Failed";
+        window.adminPopup?.error("Unable to copy the API URL.", "Copy Failed");
       }
     });
 
