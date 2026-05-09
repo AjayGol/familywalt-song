@@ -121,3 +121,25 @@ Important:
 - Do not commit the real `.env` file
 - Keep secrets only in local `.env` or Render environment settings
 - Rotate any credentials that were previously shared
+
+## Docker Deployment
+
+Build the production image:
+
+```bash
+docker build -t familywalt-song .
+```
+
+Run the container with your local `.env` file:
+
+```bash
+docker run --env-file .env -p 4000:4000 familywalt-song
+```
+
+Or run with Docker Compose:
+
+```bash
+docker compose up --build
+```
+
+The container includes `ffmpeg` and `ffprobe`, so the default `FFMPEG_PATH=ffmpeg` and `FFPROBE_PATH=ffprobe` values work as-is. The image does not copy `.env`; inject secrets through your deployment platform, `--env-file`, or Compose.

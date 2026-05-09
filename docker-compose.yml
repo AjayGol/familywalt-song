@@ -1,0 +1,14 @@
+services:
+  app:
+    build: .
+    image: familywalt-song:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      FFMPEG_PATH: ffmpeg
+      FFPROBE_PATH: ffprobe
+    ports:
+      - "4000:4000"
