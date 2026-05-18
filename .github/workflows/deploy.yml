@@ -1,0 +1,86 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy to server
+    runs-on: ubuntu-latest
+
+    env:
+      SSH_HOST: ${{ secrets.SSH_HOST }}
+      SSH_USER: ${{ secrets.SSH_USER }}
+      SSH_PORT: ${{ secrets.SSH_PORT || '22' }}
+      APP_DIR: ${{ vars.APP_DIR || '/opt/familywalt-song' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p "$SSH_PORT" "$SSH_HOST" >> ~/.ssh/known_hosts
+
+      - name: Ensure app directory exists
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+            "mkdir -p '$APP_DIR'"
+
+      - name: Sync repository to server
+        run: |
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/deploy_key -p $SSH_PORT" \
+            --exclude ".git" \
+            --exclude ".github" \
+            --exclude ".env" \
+            --exclude "node_modules" \
+            ./ "$SSH_USER@$SSH_HOST:$APP_DIR/"
+
+      - name: Write production .env
+        env:
+          PROD_PORT: ${{ secrets.PORT }}
+          PROD_MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          PROD_MONGODB_DB_NAME: ${{ secrets.MONGODB_DB_NAME }}
+          PROD_R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          PROD_R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          PROD_R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          PROD_R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          PROD_R2_PUBLIC_BASE_URL: ${{ secrets.R2_PUBLIC_BASE_URL }}
+          PROD_FFMPEG_PATH: ${{ secrets.FFMPEG_PATH }}
+          PROD_FFPROBE_PATH: ${{ secrets.FFPROBE_PATH }}
+        run: |
+          trap 'rm -f .env.production' EXIT
+
+          {
+            printf 'PORT=%s\n' "$PROD_PORT"
+            printf 'MONGODB_URI=%s\n' "$PROD_MONGODB_URI"
+            printf 'MONGODB_DB_NAME=%s\n' "$PROD_MONGODB_DB_NAME"
+            printf 'R2_ACCOUNT_ID=%s\n' "$PROD_R2_ACCOUNT_ID"
+            printf 'R2_ACCESS_KEY_ID=%s\n' "$PROD_R2_ACCESS_KEY_ID"
+            printf 'R2_SECRET_ACCESS_KEY=%s\n' "$PROD_R2_SECRET_ACCESS_KEY"
+            printf 'R2_BUCKET=%s\n' "$PROD_R2_BUCKET"
+            printf 'R2_PUBLIC_BASE_URL=%s\n' "$PROD_R2_PUBLIC_BASE_URL"
+            printf 'FFMPEG_PATH=%s\n' "$PROD_FFMPEG_PATH"
+            printf 'FFPROBE_PATH=%s\n' "$PROD_FFPROBE_PATH"
+          } > .env.production
+
+          scp -i ~/.ssh/deploy_key -P "$SSH_PORT" .env.production "$SSH_USER@$SSH_HOST:$APP_DIR/.env"
+          ssh -i ~/.ssh/deploy_key -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+            "chmod 600 '$APP_DIR/.env'"
+
+      - name: Restart app
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+            "cd '$APP_DIR' && docker compose up -d --build"

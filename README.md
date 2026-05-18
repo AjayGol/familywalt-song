@@ -143,3 +143,34 @@ docker compose up --build
 ```
 
 The container includes `ffmpeg` and `ffprobe`, so the default `FFMPEG_PATH=ffmpeg` and `FFPROBE_PATH=ffprobe` values work as-is. The image does not copy `.env`; inject secrets through your deployment platform, `--env-file`, or Compose.
+
+## GitHub Actions Deployment
+
+The repository includes `.github/workflows/deploy.yml` for deploying to a Docker Compose server. On every push to `main` or manual workflow run, GitHub Actions:
+
+- syncs the repository to the server
+- creates/updates the server `.env` file from GitHub Secrets
+- runs `docker compose up -d --build`
+
+Add these repository secrets in GitHub:
+
+- `SSH_HOST`
+- `SSH_USER`
+- `SSH_PRIVATE_KEY`
+- `SSH_PORT` (optional, defaults to `22`)
+- `PORT`
+- `MONGODB_URI`
+- `MONGODB_DB_NAME`
+- `R2_ACCOUNT_ID`
+- `R2_ACCESS_KEY_ID`
+- `R2_SECRET_ACCESS_KEY`
+- `R2_BUCKET`
+- `R2_PUBLIC_BASE_URL`
+- `FFMPEG_PATH`
+- `FFPROBE_PATH`
+
+Optional repository variable:
+
+- `APP_DIR` (defaults to `/opt/familywalt-song`)
+
+The deploy user must be able to write to `APP_DIR` and run Docker Compose on the server. After this is configured, update env values in GitHub Secrets instead of editing `.env` manually over SSH.
