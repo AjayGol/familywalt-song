@@ -19,7 +19,7 @@ jobs:
       SSH_HOST: ${{ secrets.SSH_HOST }}
       SSH_USER: ${{ secrets.SSH_USER }}
       SSH_PORT: ${{ secrets.SSH_PORT || '22' }}
-      APP_DIR: ${{ vars.APP_DIR || '/opt/familywalt-song' }}
+      APP_DIR: ${{ vars.APP_DIR || '/root/familywalt-song' }}
 
     steps:
       - name: Checkout repository
