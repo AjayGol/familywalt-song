@@ -80,7 +80,12 @@ jobs:
           ssh -i ~/.ssh/deploy_key -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
             "chmod 600 '$APP_DIR/.env'"
 
+      - name: Free Docker build space
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+            "docker container prune -f && docker image prune -af && docker builder prune -af || true"
+
       - name: Restart app
         run: |
           ssh -i ~/.ssh/deploy_key -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
-            "cd '$APP_DIR' && if docker compose version >/dev/null 2>&1; then docker compose up -d --build; elif command -v docker-compose >/dev/null 2>&1; then docker-compose up -d --build; else echo 'Docker Compose is not installed on the server.' >&2; exit 1; fi"
+            "cd '$APP_DIR' && if docker compose version >/dev/null 2>&1; then docker compose up -d --build; elif command -v docker-compose >/dev/null 2>&1; then docker-compose down --remove-orphans && docker-compose up -d --build; else echo 'Docker Compose is not installed on the server.' >&2; exit 1; fi"
