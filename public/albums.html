@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manage Albums</title>
+    <link rel="stylesheet" href="/styles.css?v=album-20260527c" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="topbar">
+        <a class="topbar__brand" href="/">
+          <span class="topbar__brand-main">Song Admin</span>
+          <span class="topbar__brand-sub">Dev by BS Patel</span>
+        </a>
+        <nav class="topbar__nav">
+          <a href="/">Home</a>
+          <a href="/upload.html">Upload</a>
+          <a class="is-active" href="/albums.html">Albums</a>
+          <a href="/player.html">Player</a>
+          <a href="/edit.html">Edit</a>
+          <a href="/api.html">Get API</a>
+        </nav>
+      </header>
+
+      <section class="panel hero">
+        <p class="eyebrow">Album Manager</p>
+        <h1>Create and manage albums by category</h1>
+        <p class="intro">
+          Create an album in popup steps, then manage its songs and name later. Songs stay separate in the
+          main category list and only get grouped into albums.
+        </p>
+        <div class="actions">
+          <button id="album-create-trigger" type="button">Create Album</button>
+          <span id="album-status-badge" class="badge idle">Idle</span>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <h2>Created Albums</h2>
+        </div>
+
+        <div id="album-list" class="album-simple-grid"></div>
+      </section>
+
+      <section id="album-detail-panel" class="panel album-detail-panel is-hidden">
+        <div class="album-detail-panel__hero">
+          <img id="album-detail-cover" class="album-detail-panel__cover" alt="Album cover" />
+          <div class="album-detail-panel__copy">
+            <p id="album-detail-category" class="eyebrow"></p>
+            <h2 id="album-detail-name"></h2>
+            <p id="album-detail-count" class="summary"></p>
+          </div>
+        </div>
+
+        <div class="album-detail-panel__actions">
+          <button id="album-add-songs-button" type="button">Add Songs</button>
+          <button id="album-remove-songs-button" type="button" class="secondary">Remove Songs</button>
+          <button id="album-rename-button" type="button" class="secondary">Change Name</button>
+          <button id="album-delete-button" type="button" class="danger-button">Delete Album</button>
+        </div>
+
+        <div id="album-detail-songs" class="album-simple-song-list"></div>
+      </section>
+
+      <section id="album-empty-panel" class="panel album-empty-panel">
+        <p class="eyebrow">No Album Selected</p>
+        <h2>Pick an album below to manage it</h2>
+        <p class="summary">
+          After selecting an album, you can add songs, remove songs, change the name, or delete the album.
+        </p>
+      </section>
+    </main>
+
+    <div id="album-modal-backdrop" class="album-modal-backdrop is-hidden">
+      <div class="album-modal" role="dialog" aria-modal="true">
+        <div class="album-modal__header">
+          <div>
+            <p id="album-modal-eyebrow" class="eyebrow"></p>
+            <h2 id="album-modal-title"></h2>
+          </div>
+          <button id="album-modal-close" type="button" class="album-modal__close">x</button>
+        </div>
+
+        <div id="album-modal-body" class="album-modal__body"></div>
+
+        <div id="album-modal-actions" class="album-modal__actions"></div>
+      </div>
+    </div>
+
+    <footer class="page-footer">
+      <span>Dev by BS Patel</span>
+      <span>Create albums inside category songs without duplication</span>
+    </footer>
+
+    <script src="/popup.js?v=album-20260527c"></script>
+    <script src="/live-sync.js?v=album-20260527c"></script>
+    <script src="/lazy-images.js?v=album-20260527c"></script>
+    <script src="/albums.js?v=album-20260527c"></script>
+  </body>
+</html>

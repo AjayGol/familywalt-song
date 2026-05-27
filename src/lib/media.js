@@ -4,6 +4,7 @@ const fs = require("node:fs/promises");
 const os = require("node:os");
 const path = require("node:path");
 const { promisify } = require("node:util");
+const sharp = require("sharp");
 const { getEnv } = require("../config/env");
 
 const execFileAsync = promisify(execFile);
@@ -265,6 +266,26 @@ async function prepareUploadAssets(filePath, originalFileName) {
   }
 }
 
+async function prepareAlbumCoverAsset(filePath) {
+  try {
+    const image = sharp(filePath, { failOn: "warning" }).rotate().resize({
+      width: 1200,
+      height: 1200,
+      fit: "inside",
+      withoutEnlargement: true,
+    });
+
+    return {
+      buffer: await image.webp({ quality: 82 }).toBuffer(),
+      extension: ".webp",
+      contentType: "image/webp",
+    };
+  } catch (error) {
+    throw error instanceof Error ? new Error("Unable to prepare the album cover image.") : error;
+  }
+}
+
 module.exports = {
+  prepareAlbumCoverAsset,
   prepareUploadAssets,
 };

@@ -23,6 +23,11 @@ async function startServer() {
       maxAge: "1h",
       etag: true,
       lastModified: true,
+      setHeaders(response, filePath) {
+        if (/\.(html|css|js)$/i.test(filePath)) {
+          response.set("Cache-Control", "no-cache, no-store, must-revalidate");
+        }
+      },
     }),
   );
 

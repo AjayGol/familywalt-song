@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>API URLs</title>
-    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/styles.css?v=api-20260527a" />
   </head>
   <body>
     <main class="page">
@@ -16,6 +16,7 @@
         <nav class="topbar__nav">
           <a href="/">Home</a>
           <a href="/upload.html">Upload</a>
+          <a href="/albums.html">Albums</a>
           <a href="/player.html">Player</a>
           <a href="/edit.html">Edit</a>
           <a class="is-active" href="/api.html">Get API</a>
@@ -26,8 +27,9 @@
         <p class="eyebrow">API URLs</p>
         <h1>Copy API links for developers</h1>
         <p class="intro">
-          Use these real hosted URLs directly in Android, frontend, or Postman. Every endpoint on this page
-          uses the Render production domain.
+          Use these API URLs directly in Android, frontend, or Postman. The page now includes album APIs for
+          each category along with the direct song endpoints. The base URL is automatic, so if this website is
+          hosted on another platform the links shown here will change automatically.
         </p>
       </section>
 
@@ -42,11 +44,11 @@
     </main>
     <footer class="page-footer">
       <span>Dev by BS Patel</span>
-      <span>Production Render API links only</span>
+      <span>Song and album API links</span>
     </footer>
 
-    <script src="/popup.js"></script>
-    <script src="/media-cache-register.js"></script>
-    <script src="/api.js"></script>
+    <script src="/popup.js?v=api-20260527a"></script>
+    <script src="/media-cache-register.js?v=api-20260527a"></script>
+    <script src="/api.js?v=api-20260527a"></script>
   </body>
 </html>
