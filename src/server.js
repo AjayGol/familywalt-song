@@ -4,6 +4,7 @@ const { getEnv } = require("./config/env");
 const { connectToDatabase } = require("./db/connect");
 const { ensureCategoryFoldersExist } = require("./lib/r2");
 const { router } = require("./routes/uploadRoutes");
+const { router: chalisaRouter } = require("./chalisa/routes/chalisaRoutes");
 
 async function startServer() {
   const env = getEnv();
@@ -13,6 +14,7 @@ async function startServer() {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use("/api", router);
+  app.use("/chalisa-api", chalisaRouter);
   app.get("/song-media-cache-sw.js", (request, response) => {
     response.set("Cache-Control", "no-cache, no-store, must-revalidate");
     response.set("Service-Worker-Allowed", "/");

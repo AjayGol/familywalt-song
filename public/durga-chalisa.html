@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Durga Chalisa – Song Admin</title>
+    <meta name="description" content="Upload and manage Durga Chalisa audio files." />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <!-- Topbar (exact same as standard pages) -->
+      <header class="topbar">
+        <a class="topbar__brand" href="/">
+          <span class="topbar__brand-main">Song Admin</span>
+          <span class="topbar__brand-sub">Dev by BS Patel</span>
+        </a>
+        <nav class="topbar__nav">
+          <a href="/">Home</a>
+          <a href="/upload.html">Upload</a>
+          <a href="/albums.html">Albums</a>
+          <a href="/player.html">Player</a>
+          <a href="/edit.html">Edit</a>
+          <a href="/api.html">Get API</a>
+        </nav>
+      </header>
+
+      <!-- Hero -->
+      <section class="panel hero">
+        <p class="eyebrow">Durga Chalisa</p>
+        <h1>Upload &amp; Manage Songs</h1>
+        <p class="intro">
+          Upload audio files for Durga Chalisa. The server extracts the title, artist, and
+          cover art automatically using ffmpeg, then stores everything in R2
+          under <code>chalisa/durga/</code> and saves metadata to MongoDB.
+        </p>
+      </section>
+
+      <!-- Upload form panel -->
+      <section class="panel" id="upload-panel">
+        <div class="section-head">
+          <h2>Upload New Song</h2>
+          <span id="status-badge" class="badge idle">Ready</span>
+        </div>
+
+        <form id="upload-form" class="upload-form">
+          <label class="field dropzone">
+            <span>Audio File</span>
+            <input
+              id="audio-input"
+              type="file"
+              name="audioFile"
+              accept=".mp3,.wav,.m4a,.aac,.flac,audio/*"
+              required
+            />
+            <small>Select an audio file to upload.</small>
+          </label>
+
+          <div id="progress-wrap" style="display:none; margin: 15px 0;">
+            <div class="popup-progress">
+              <div id="progress-bar" class="popup-progress__bar"></div>
+            </div>
+            <div id="progress-text" class="popup-progress__label">0%</div>
+          </div>
+
+          <div class="actions">
+            <button id="upload-btn" type="submit">Upload Song</button>
+            <button id="reset-btn" type="button" class="secondary">Clear Selection</button>
+          </div>
+        </form>
+
+        <pre id="result-box" class="result" style="display:none; margin-top: 15px;"></pre>
+      </section>
+
+      <!-- Song list panel -->
+      <section class="panel">
+        <div class="section-head">
+          <h2>
+            Songs
+            <span id="song-count" style="font-size:0.9rem; font-weight:400; color:var(--muted); margin-left:6px;"></span>
+          </h2>
+          <button id="refresh-btn" class="secondary" type="button" style="padding: 10px 16px;">↺ Refresh</button>
+        </div>
+
+        <div id="song-list" class="song-list">
+          <div class="song-list__empty">Loading songs...</div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="page-footer">
+      <span>Dev by BS Patel &bull; R2: <code>chalisa/durga/</code> &bull; Collection: <code>durgachalisa</code></span>
+    </footer>
+
+    <script src="/popup.js"></script>
+    <script src="/chalisa.js"></script>
+    <script>initChalisaPage("durga");</script>
+  </body>
+</html>
