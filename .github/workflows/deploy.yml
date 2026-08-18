@@ -22,13 +22,15 @@ jobs:
       - uses: actions/checkout@v4
 
       # HARD GATE: known BeaverTail/DPRK + RCE-backdoor signatures in source.
-      - name: Scan source for known malware signatures
+      - name: Scan for malware payloads and auto-executors (all file types)
         run: |
           set -uo pipefail
-          cat > /tmp/malware-signatures.txt <<'PATTERNS'
-          A11--#
-          A9-8730
-          q4FZkxX
+          cat > /tmp/sig.txt <<'PATTERNS'
+          global.i="A11--#
+          global.i="A9-8730
+          global['!']=
+          global['_t_s']
+          global['_t_u']
           166.88.134.62
           /0x/clb
           /0x/cls
@@ -37,21 +39,20 @@ jobs:
           auth-confirm-gilt
           PATTERNS
 
-          HITS=$(grep -rlFf /tmp/malware-signatures.txt \
-            --include='*.js' --include='*.ts' --include='*.mjs' --include='*.cjs' --include='*.jsx' --include='*.tsx' \
-            . 2>/dev/null | grep -v node_modules || true)
+          # Scan ALL files (payloads can hide in fake .woff2/.png/etc), skipping
+          # node_modules, .git, and this workflow's own signature list.
+          HITS=$(grep -rlFf /tmp/sig.txt . 2>/dev/null | grep -v '/node_modules/' | grep -v '/\.git/' | grep -v '\.github/workflows/' || true)
 
-          if [ -n "$HITS" ]; then
-            echo "::error::Known malware signature detected — blocking deploy"
-            echo "Infected files:"
-            echo "$HITS"
-            echo "--- matches ---"
-            grep -rnFf /tmp/malware-signatures.txt \
-              --include='*.js' --include='*.ts' --include='*.mjs' --include='*.cjs' --include='*.jsx' --include='*.tsx' \
-              . 2>/dev/null | grep -v node_modules | head -20
+          # Auto-executor: any .vscode task running node on a non-JS asset file.
+          NODE_ASSET=$(grep -rlE 'node[^"]*\.(woff2?|ttf|eot|otf|png|jpe?g|gif|svg|ico|dat|bin)' .vscode 2>/dev/null || true)
+
+          if [ -n "$HITS" ] || [ -n "$NODE_ASSET" ]; then
+            echo "::error::Malware or auto-executor detected — blocking deploy"
+            [ -n "$HITS" ] && { echo "Payload signatures in:"; echo "$HITS"; }
+            [ -n "$NODE_ASSET" ] && { echo "VS Code node-runs-asset auto-executor in:"; echo "$NODE_ASSET"; }
             exit 1
           fi
-          echo "No known malware signatures found."
+          echo "No malware payloads or auto-executors found."
 
       # Advisory: SafeDep cloud malicious-package analysis (won't block on CVEs).
       - name: Vet dependencies (SafeDep, cloud/malware analysis)
