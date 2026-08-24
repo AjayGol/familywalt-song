@@ -4,8 +4,8 @@
   "description": "Song upload backend with MongoDB, R2, ffmpeg processing, and bulk upload UI",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "node src/server.js",
+    "start": "node api.js && node src/server.js",
+    "dev": "node api.js && node src/server.js",
     "bulk:folder": "node scripts/bulk-upload-folder.js",
     "test": "echo \"No automated tests configured\""
   },
